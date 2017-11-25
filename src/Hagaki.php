@@ -52,6 +52,11 @@ class Hagaki
         $default_cell_height_ratio = $this->pdf->getCellHeightRatio();
     }
 
+    public function zipcode($zipcode)
+    {
+        $this->pdf->Text(38, 12, $zipcode);
+    }
+
     public function output($file)
     {
         //$fp = fopen($file, 'w');
