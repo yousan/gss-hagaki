@@ -1,0 +1,31 @@
+{
+    "name": "yousan/gss-hagaki",
+    "description": "Create PDF for print hagaki.",
+    "license": "GPLv3",
+    "require": {
+        "tecnickcom/tcpdf": "^6.2",
+        "setasign/fpdi": "^2.0",
+        "guzzlehttp/guzzle": "^6.3"
+    },
+    "authors": [
+        {
+            "name": "Yousan_O",
+            "email": "yousan@l2tp.org",
+            "homepage": "https://2017.l2tp.org/"
+        }
+    ],
+    "autoload": {
+        "files": ["src/functions_include.php"],
+        "psr-4": {
+            "GSSHagaki\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "GSSHagaki\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "php tests/GSSHagakiTest.php"
+    }
+}
