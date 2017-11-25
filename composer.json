@@ -15,7 +15,6 @@
         }
     ],
     "autoload": {
-        "files": ["src/functions_include.php"],
         "psr-4": {
             "GSSHagaki\\": "src/"
         }
