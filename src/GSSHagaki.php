@@ -42,7 +42,7 @@ class GSSHagaki
             $data = array_combine( $header, $row ); // 見出し業
         }
         $hagaki->defineHagaki();
-        $hagaki->zipcode($data[0]['zipcode']);
+        $hagaki->zipcode($data['zipcode']);
         $hagaki->output(__DIR__.'/hoge.pdf');
     }
 
