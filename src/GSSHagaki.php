@@ -43,6 +43,13 @@ class GSSHagaki
         }
         $hagaki->defineHagaki();
         $hagaki->zipcode($data['zipcode']);
+        $hagaki->address($data['address_1'], $data['address_2']);
+        $hagaki->name($data['name'], $data['suffix']);
+
+
+        $hagaki->owner_zipcode('9650015');
+        $hagaki->owner_address('富山県高岡高岡市放生津町二丁目2-2-2    ', '放生津町アパートメン津ABD棟202号室');
+        // $hagaki->owner_name('電撃　太郎');
         $hagaki->output(__DIR__.'/hoge.pdf');
     }
 
