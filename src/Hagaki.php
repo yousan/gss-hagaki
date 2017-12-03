@@ -25,6 +25,11 @@ class Hagaki
     const BASEPDF = __DIR__ . '/../misc/hagaki.pdf';
 
     /**
+     * 横書きモードの際のマージン(mm)
+     */
+    const Y_MARGIN = 0.05;
+
+    /**
      * @var TCPDF_FONTS $font
      */
     private $font;
@@ -188,28 +193,78 @@ class Hagaki
      * thanks! @link https://dbweb.0258.net/wiki.cgi?page=tcpdf%A4%C7%C6%FC%CB%DC%B8%EC%A4%CE%BD%C4%BD%F1%A4%AD
      *
      * @param $x
-     * @param $y
+     * @param $base_y
      * @param $str
      * @param $size
      * @param bool $sitatsuki 下付き文字（下段揃え）の文字列の場合。
+     *
+     * @internal param $y
      */
-    private function tate1($x, $y, $str, $size, $sitatsuki = false)
+    private function tate1($x, $base_y, $str, $size, $sitatsuki = false)
     {
         // $this->pdf->SetFont('aoyagi-kouzan-font-gyousyo', '', $size);
 
-        $fh = $this->pt2mm($size * 0.8); // 文字のサイズから算出されるオフセット
+        $fh = $this->pt2mm($size * 0.8); // 文字のサイズから算出される1文字の大きさ(高さ)
         $l  = mb_strlen($str, 'UTF-8');
 
         if ($sitatsuki) { // 下付きの場合には開始位置を事前に計算しておく
-            $start = $y - $fh * $l;
+            $y = $base_y - $fh * $l;
         } else {
-            $start = $y;
+            $y = $base_y;
         }
-
+        $hankaku_str = '';
         for ($i = 0; $i < $l; $i++) {
-            $s1 = mb_substr($str, $i, 1, 'UTF-8');
-            //print $s1."\n";
-            $this->pdf->Text($x, $start + $fh * $i, $s1);
+            $c = mb_substr($str, $i, 1, 'UTF-8'); // 一文字だけ取り出す
+            if ( $this->isHankaku($c) ) { // 半角文字列が来た場合ストックする
+                $hankaku_str .= $c;
+            } else { // 全角文字だった場合
+                if ( !empty($hankaku_str) ) { // 全角文字が出るまでに半角文字がストックされていた場合、放出する
+                    $this->hankakuYoko($x, $y, $size, $hankaku_str);
+                    $hankaku_str = ''; // ストックをゼロに
+                    $y += $fh; // 高さを一文字分だけ進める
+                }
+                $this->pdf->Text($x, $y, $c);
+                $y += $fh; // 高さを一文字分だけ進める
+            }
+        }
+    }
+
+    /**
+     * 半角で横書きにする。
+     * 半角文字の長さによって、全角文字の左上の位置から、x軸正の方向（右方向）にズラす幅
+     * 1文字の場合 => +0.25em
+     * 2文字の場合 =>  0em
+     * 3文字の場合 => -0.25em
+     * 4文字の場合 => -0.5em
+     *
+     * @param $x
+     * @param $y
+     * @param $size
+     * @param $str
+     */
+    private function hankakuYoko($x, $y, $size, $str) {
+        $length = mb_strlen($str); // 文字列長
+        // 文字のサイズから算出される半角0.25em文字の大きさ(幅)
+        // 元の$sizeは全角をベースとしているので、その半分を基準にする
+        $fontWidth =  $this->pt2mm( $size );
+        $x_offset = (0.5 - ($length * 0.25)) * $fontWidth; // 左にずらす大きさ(em)
+        $this->pdf->Text($x + $x_offset, $y, $str);
+    }
+
+    /**
+     * 半角、全角を判定する
+     * @link https://singoro.net/note/count-utf8/
+     *
+     * @param $c
+     *
+     * @return bool
+     */
+    private function isHankaku( $c ) {
+        if ( ( mb_strwidth($c, 'UTF-8') / 2 ) === 0.5 &&
+             !empty(trim($c)) ) {
+            return true;
+        } else {
+            return false;
         }
     }
 
