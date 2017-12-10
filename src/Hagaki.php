@@ -70,7 +70,7 @@ class Hagaki
 
 
     /**
-     * 名前を追記する
+     * 名前を追記する。
      *
      * @param $name
      * @param $suffix
@@ -88,7 +88,7 @@ class Hagaki
     }
 
     /**
-     * 郵便番号を設定する
+     * 郵便番号を設定する。
      *
      * @param string $zipcode
      */
@@ -104,7 +104,11 @@ class Hagaki
         $this->pdf->Text(88, 10, $zipcode[6]);
     }
 
-
+    /**
+     * 差出人の郵便番号を設定する。
+     *
+     * @param $zipcode
+     */
     public function owner_zipcode($zipcode)
     {
         $this->pdf->SetFont($this->fontfamily, '', 12);
@@ -118,6 +122,8 @@ class Hagaki
     }
 
     /**
+     * 差出人の住所を設定する。
+     *
      * @param $address_1
      * @param $address_2
      */
@@ -139,6 +145,11 @@ class Hagaki
 
     }
 
+    /**
+     * ファイルの書き出し。
+     *
+     * @param $file
+     */
     public function output($file)
     {
         //$fp = fopen($file, 'w');
@@ -205,15 +216,28 @@ class Hagaki
         // $this->pdf->SetFont('aoyagi-kouzan-font-gyousyo', '', $size);
 
         $fh = $this->pt2mm($size * 0.8); // 文字のサイズから算出される1文字の大きさ(高さ)
-        $l  = mb_strlen($str, 'UTF-8');
+        $l  = mb_strlen($str, 'UTF-8'); // UTF-8で長さを計算
+        $str = $this->hyphenation($str); // ハイフンを縦棒に
 
-        if ($sitatsuki) { // 下付きの場合には開始位置を事前に計算しておく
-            $y = $base_y - $fh * $l;
+        // 下付き（下段揃え）の場合には開始位置を事前に計算しておく。
+        // ただし連続する半角文字の場合には全角1文字としてカウントする必要がある。
+        if ($sitatsuki) { // 下付きの場合
+            // e.g. 'あいうABCえおCDほげ' の場合、['ABC', 'CD']がそれぞれ1文字になるので、
+            // 全文字列長( mb_strlen('あいうABCえおCDほげ') )から
+            // -2 ( ABC.length() - 1), -1 (CD.length() -1 )) = -3 文字をオフセットで引きたい
+            $hankaku_offset = 0; // 連続した半角文字列を、それぞれ-1文字分した長さ
+            if (preg_match_all('/(?<hankaku>[A-z0-9\-]+)/', $str, $matches)){
+                foreach ($matches['hankaku'] as $key => $value ){
+                    $hankaku_offset += strlen($value) - 1;
+                }
+            }
+            $y = $base_y - $fh * ($l - $hankaku_offset );
         } else {
             $y = $base_y;
         }
+
         $hankaku_str = '';
-        for ($i = 0; $i < $l; $i++) {
+        for ($i = 0; $i < $l; $i++) { // 各文字でループ
             $c = mb_substr($str, $i, 1, 'UTF-8'); // 一文字だけ取り出す
             if ( $this->isHankaku($c) ) { // 半角文字列が来た場合ストックする
                 $hankaku_str .= $c;
@@ -227,6 +251,21 @@ class Hagaki
                 $y += $fh; // 高さを一文字分だけ進める
             }
         }
+    }
+
+    /**
+     * ハイフンを統一する。
+     * ハイフンは日本の住所でよく使われている。
+     * 縦書きの際にハイフンは縦書きにする必要があるので、ハイフンを全て全角縦棒「｜」に統一する。
+     *
+     * @param $str
+     *
+     * @return string
+     */
+    private function hyphenation($str) {
+        $str = mbereg_replace('/ー/', '｜', $str);
+        $str = mbereg_replace('/ー/', '｜', $str);
+        return $str;
     }
 
     /**
@@ -255,13 +294,12 @@ class Hagaki
      * 半角、全角を判定する
      * @link https://singoro.net/note/count-utf8/
      *
-     * @param $c
+     * @param string $c 文字
      *
      * @return bool
      */
     private function isHankaku( $c ) {
-        if ( ( mb_strwidth($c, 'UTF-8') / 2 ) === 0.5 &&
-             !empty(trim($c)) ) {
+        if ( ( mb_strwidth(trim($c), 'UTF-8') / 2 ) === 0.5 ) {
             return true;
         } else {
             return false;
