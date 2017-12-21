@@ -60,6 +60,8 @@ class Hagaki
 
         // 自動改ページ @link http://www.t-net.ne.jp/~cyfis/tcpdf/tcpdf/SetAutoPageBreak.html
         $this->pdf->SetAutoPageBreak(false, 0);
+
+        mb_internal_encoding('UTF-8');
     }
 
     /**
@@ -84,7 +86,7 @@ class Hagaki
     public function name($name, $suffix)
     {
         $this->names_count++;
-        $this->tate1(55, 32, $name . ' ' . $suffix, 38);
+        $this->tate1(55, 32, $name . ' ' . $suffix, 20);
     }
 
     /**
@@ -96,8 +98,16 @@ class Hagaki
      */
     public function address($address_1, $address_2)
     {
-        $this->tate1(85, 25, $address_1, 28);
-        $this->tate1(75, 25, $address_2, 28);
+        if ( $this->mb_tate_strlen($address_1) < 14 ) {
+            $this->tate1(85, 25, $address_1, 19);
+        } else { // 13文字以上ははみ出す可能性が高いのでフォントを小さくする
+            $this->tate1(85, 25, $address_1, 13);
+        }
+        if ( $this->mb_tate_strlen($address_2) < 14 ) {
+            $this->tate1(75, 25, $address_2, 19);
+        } else {
+            $this->tate1(75, 25, $address_2, 13);
+        }
     }
 
     /**
@@ -142,20 +152,25 @@ class Hagaki
      */
     public function owner_address($address_1, $address_2)
     {
-        $fontsize = 11;
-        $this->pdf->SetFont($this->fontfamily, '', $fontsize - 3);
+        $fontsize = 8;
+        // $this->pdf->SetFont($this->fontfamily, '', $fontsize - 3);
 
-        $this->tate1(29.75, 123, $address_1, $fontsize, true);
-        $this->tate1(25.5, 123, $address_2, $fontsize, true);
+        $this->tate1(29.75, 120, $address_1, $fontsize, true);
+        $this->tate1(25.5, 120, $address_2, $fontsize, true);
     }
 
+    /**
+     * 差出人名を設定する。
+     *
+     * @param $name_1
+     * @param string $name_2
+     */
     public function owner_name($name_1, $name_2 = '')
     {
         $fontsize = 20;
-        $this->pdf->SetFont($this->fontfamily, '', $fontsize);
+        // $this->pdf->SetFont($this->fontfamily, '', $fontsize);
 
-         $this->tate1(14, 123, $name_1, $fontsize * 1.3, true); // フォントサイズ20で下付きにするとズレる
-        // $this->tate1(14, 80, $name_1, $fontsize*1.3);
+        $this->tate1(14, 121, $name_1, $fontsize, true);
     }
 
     /**
@@ -187,38 +202,29 @@ class Hagaki
      * @param $x
      * @param $base_y
      * @param $str
-     * @param int $size ここで指定されたサイズを基に縦書きの字間を計算する
+     * @param int $size
      * @param bool $sitatsuki 下付き文字（下段揃え）の文字列の場合。
+     * @param float $height_ratio ここで指定されたサイズを基に縦書きの字間を計算する
      *
      * @internal param $y
      */
-    private function tate1($x, $base_y, $str, $size, $sitatsuki = false)
+    private function tate1($x, $base_y, $str, $size, $sitatsuki = false, $height_ratio = 1.0)
     {
-        // $this->pdf->SetFont('aoyagi-kouzan-font-gyousyo', '', $size);
-
-        $fh = $this->pt2mm($size * 0.8); // 文字のサイズから算出される1文字の大きさ(高さ)
-        $l  = mb_strlen($str, 'UTF-8'); // UTF-8で長さを計算
+        $this->pdf->SetFont($this->fontfamily, '', $size);
+        $fh = $this->pt2mm($size * $height_ratio); // 文字のサイズから算出される1文字の大きさ(高さ)
         $str = $this->hyphenation($str); // ハイフンを縦棒に
 
-        // 下付き（下段揃え）の場合には開始位置を事前に計算しておく。
-        // ただし連続する半角文字の場合には全角1文字としてカウントする必要がある。
-        if ($sitatsuki) { // 下付きの場合
-            // e.g. 'あいうABCえおCDほげ' の場合、['ABC', 'CD']がそれぞれ1文字になるので、
-            // 全文字列長( mb_strlen('あいうABCえおCDほげ') )から
-            // -2 ( ABC.length() - 1), -1 (CD.length() -1 )) = -3 文字をオフセットで引きたい
-            $hankaku_offset = 0; // 連続した半角文字列を、それぞれ-1文字分した長さ
-            if (preg_match_all('/(?<hankaku>[A-z0-9\-]+)/', $str, $matches)){
-                foreach ($matches['hankaku'] as $key => $value ){
-                    $hankaku_offset += strlen($value) - 1;
-                }
-            }
-            $y = $base_y - $fh * ($l - $hankaku_offset );
+        $l = $this->mb_tate_strlen($str);
+         if ($sitatsuki) { // 下付きの場合
+            // 下付き（下段揃え）の場合には開始位置を事前に計算しておく。
+             $l = $this->mb_tate_strlen($str);
+            $y = $base_y - ( $fh * $l );
         } else {
             $y = $base_y;
         }
 
         $hankaku_str = '';
-        for ($i = 0; $i < $l; $i++) { // 各文字でループ
+        for ($i = 0; $i < mb_strlen($str); $i++) { // 各文字でループ
             $c = mb_substr($str, $i, 1, 'UTF-8'); // 一文字だけ取り出す
             if ( $this->isHankaku($c) ) { // 半角文字列が来た場合ストックする
                 $hankaku_str .= $c;
@@ -232,6 +238,38 @@ class Hagaki
                 $y += $fh; // 高さを一文字分だけ進める
             }
         }
+        // ループが終わりきって半角がストックされていた場合、最後の出力を行う。
+        if ( !empty($hankaku_str) ) {
+            $this->hankakuYoko($x, $y, $size, $hankaku_str);
+            $hankaku_str = ''; // ストックをゼロに
+            $y += $fh; // 高さを一文字分だけ進める
+        }
+    }
+
+    /**
+     * 縦書きにした時の文字列長を計算する。
+     * ポイントとしては、連続する半角文字については横書きになるので、１文字として計算する。
+     * e.g. 'あいうABCえおCDほげ' => 9
+     * e.g. 'あいうえおほげ' => 7
+     *
+     * @param $str
+     *
+     * @return int
+     */
+    private function mb_tate_strlen($str) {
+        // e.g. 'あいうABCえおCDほげ' の場合、['ABC', 'CD']がそれぞれ1文字になるので、
+        // 全文字列長( mb_strlen('あいうABCえおCDほげ') )から
+        // -2 ( ABC.length() - 1), -1 (CD.length() -1 )) = -3 文字をオフセットで引きたい
+        $length = mb_strlen($str);
+        if (preg_match_all('/(?<hankaku>[A-z0-9\-]+)/', $str, $matches)){
+            foreach ($matches['hankaku'] as $key => $value ){
+                // 1文字だけの半角文字列だった場合には引かない。
+                if (strlen($value) > 1 ) { // 2文字以上の連続する長さnの半角文字列だった場合、n-1分だけ引く。
+                    $length -= strlen($value) - 1;
+                }
+            }
+        }
+        return $length;
     }
 
     /**
@@ -244,8 +282,9 @@ class Hagaki
      * @return string
      */
     private function hyphenation($str) {
-        $str = mbereg_replace('/ー/', '｜', $str);
-        $str = mbereg_replace('/ー/', '｜', $str);
+        $str = str_replace('ー', '｜', $str);
+        $str = str_replace('−', '｜', $str);
+        $str = str_replace('-', '｜', $str);
         return $str;
     }
 

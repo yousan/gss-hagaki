@@ -28,6 +28,8 @@ class GSSHagaki
 
     public function __construct($url)
     {
+        // echo '<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"></head><body>';
+
 //        $client     = new Client();
 //        $response   = $client->get($url);
 //        $stream     = $response->getBody();
@@ -64,10 +66,6 @@ class GSSHagaki
             $this->hagaki->owner_zipcode($data['owner_zipcode']);
             $this->hagaki->owner_address($data['owner_address_1'], $data['owner_address_2']);
             $this->hagaki->owner_name($data['owner_name']);
-//            $this->hagaki->owner_zipcode('9650015');
-//            $this->hagaki->owner_address('富山県12高1岡22高333岡市放生津町二丁目2-2ー2ほげ',
-//                '放生津町アパートメン津ABD棟202号室');
-            // $this->hagaki->owner_name('電撃　太郎');
             $this->hagaki->addVersion();
         }
         $this->output();
