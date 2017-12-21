@@ -2,6 +2,7 @@
 
 namespace GSSHagaki;
 
+use DateTime;
 use setasign\Fpdi\TcpdfFpdi;
 use TCPDF_FONTS;
 
@@ -20,7 +21,7 @@ class Hagaki
      */
     private $names_count = 0;
 
-    const FONT = __DIR__ . '/../fonts/ipag.ttf';
+    const FONT = __DIR__ . '/../fonts/migmix-2p-regular.ttf';
 
     const BASEPDF = __DIR__ . '/../misc/hagaki.pdf';
 
@@ -52,13 +53,6 @@ class Hagaki
 
         $this->pdf->SetFont($this->fontfamily, '', 11);
 
-        // ページを追加
-        $this->pdf->AddPage();
-        // テンプレートを読み込み
-        $this->pdf->setSourceFile(self::BASEPDF);
-        $tplIdx = $this->pdf->importPage(1);
-        // 読み込んだPDFの1ページ目をテンプレートとして使用
-        $this->pdf->useTemplate($tplIdx, null, null, null, null, true);
         // 書き込む文字列の文字色を指定
         $this->pdf->SetTextColor(94, 61, 28);
         // デフォルト行間
@@ -68,6 +62,18 @@ class Hagaki
         $this->pdf->SetAutoPageBreak(false, 0);
     }
 
+    /**
+     * 改ページ。
+     */
+    public function addPage() {
+        // ページを追加
+        $this->pdf->AddPage();
+        // テンプレートを読み込み
+        $this->pdf->setSourceFile(self::BASEPDF);
+        $tplIdx = $this->pdf->importPage(1);
+        // 読み込んだPDFの1ページ目をテンプレートとして使用
+        $this->pdf->useTemplate($tplIdx, null, null, null, null, true);
+    }
 
     /**
      * 名前を追記する。
@@ -94,7 +100,7 @@ class Hagaki
      */
     public function zipcode($zipcode)
     {
-        $this->pdf->SetFont($this->fontfamily, '', 20);
+        $this->pdf->SetFont($this->fontfamily, '', 19);
         $this->pdf->Text(45, 10, $zipcode[0]);
         $this->pdf->Text(52, 10, $zipcode[1]);
         $this->pdf->Text(59, 10, $zipcode[2]);
@@ -149,28 +155,14 @@ class Hagaki
      * ファイルの書き出し。
      *
      * @param $file
+     * @param $mode
      */
-    public function output($file)
+    public function output($file, $mode)
     {
         //$fp = fopen($file, 'w');
         //fwrite($fp, $this->pdf->Output());
         //fclose($fp);
-        $this->pdf->Output($file, 'F');
-    }
-
-    /**
-     * TCPDFにカスタムサイズの定義。クラスがない…
-     * @link https://stackoverflow.com/questions/3948818/tcpdf-custom-page-size
-     */
-    private function resizePDF()
-    {
-        $this->pdf = new CUSTOMPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-//Add a custom size
-        $width       = 175;
-        $height      = 266;
-        $orientation = ($height > $width) ? 'P' : 'L';
-        $this->pdf->addFormat("custom", $width, $height);
-        $this->pdf->reFormat("custom", $orientation);
+        $this->pdf->Output($file, $mode);
     }
 
     /**
@@ -197,6 +189,14 @@ class Hagaki
             //print $s1."\n";
             $this->pdf->Text($x, $start + $fh * $i, $s1);
         }
+    }
+
+    /**
+     * デバッグ用に現在の日付を入れる。
+     */
+    public function addVersion() {
+        $this->pdf->SetFont($this->fontfamily, '', 6);
+        $this->pdf->Text(3.75, 130.5, (new DateTime())->format('Y-m-d H:i:s'));
     }
 
     /**
