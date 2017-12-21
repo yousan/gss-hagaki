@@ -35,35 +35,38 @@ class GSSHagaki
         $this->file = new \SplFileObject($url);
         $this->file->setFlags(\SplFileObject::READ_CSV);
         $this->hagaki = new Hagaki();
-        $header = []; // カラム名が記載された見出し行
-        $datas = [];
+        $header       = []; // カラム名が記載された見出し行
+        $datas        = [];
 
         // CSVデータを読み出す
-        while ( !$this->file->eof() && $row = $this->file->fgetcsv()) {
-            if ( !count($header) ) { // 見出し行が無かった場合
+        while ( ! $this->file->eof() && $row = $this->file->fgetcsv()) {
+            if ( ! count($header)) { // 見出し行が無かった場合
                 $header = $row;
                 continue;
             }
-            if ( count( $row ) === 1 ||  // 空行だったりした場合
-                 empty( $row[0] ) // 最初の列が空の行は省く
+            if (count($row) === 1 ||  // 空行だったりした場合
+                empty($row[0]) // 最初の列が空の行は省く
             ) {
                 continue;
             }
-            $data = array_combine( $header, $row ); // 見出し行を連想配列のキーに設定する
+            $data    = array_combine($header, $row); // 見出し行を連想配列のキーに設定する
             $datas[] = $data;
         }
 
         $this->hagaki->defineHagaki();
 //        var_dump($datas);
-        foreach ( $datas as $data ) {
+        foreach ($datas as $data) {
             $this->hagaki->addPage();
             $this->hagaki->zipcode($data['zipcode']);
             $this->hagaki->address($data['address_1'], $data['address_2']);
             $this->hagaki->name($data['name'], $data['suffix']);
 
-            $this->hagaki->owner_zipcode('9650015');
-            $this->hagaki->owner_address('富山県12高1岡22高333岡市放生津町二丁目2-2ー2ほげ',
-                '放生津町アパートメン津ABD棟202号室');
+            $this->hagaki->owner_zipcode($data['owner_zipcode']);
+            $this->hagaki->owner_address($data['owner_address_1'], $data['owner_address_2']);
+            $this->hagaki->owner_name($data['owner_name']);
+//            $this->hagaki->owner_zipcode('9650015');
+//            $this->hagaki->owner_address('富山県12高1岡22高333岡市放生津町二丁目2-2ー2ほげ',
+//                '放生津町アパートメン津ABD棟202号室');
             // $this->hagaki->owner_name('電撃　太郎');
             $this->hagaki->addVersion();
         }
@@ -77,11 +80,12 @@ class GSSHagaki
      * 下記のリンクは恐らく古い情報で、'O'は未サポート。 @see method of tcpdf
      * @link https://stackoverflow.com/questions/31198949/how-to-send-the-file-inline-to-the-browser-using-php-with-tcpdf
      */
-    private function output() {
+    private function output()
+    {
         // header("Content-type: application/pdf");
         header("Content-type: force-download");
         // $this->hagaki->Output('name.pdf', 'O');
         // If the above does not work, it is just better to use the php header() function.
-        $this->hagaki->output('hagaki.pdf',  'D');
+        $this->hagaki->output('hagaki.pdf', 'D');
     }
 }

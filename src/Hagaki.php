@@ -87,6 +87,13 @@ class Hagaki
         $this->tate1(55, 32, $name . ' ' . $suffix, 38);
     }
 
+    /**
+     * 宛先の住所を入れる。
+     * 住所１、住所２で改行する。
+     *
+     * @param $address_1
+     * @param $address_2
+     */
     public function address($address_1, $address_2)
     {
         $this->tate1(85, 25, $address_1, 28);
@@ -142,13 +149,13 @@ class Hagaki
         $this->tate1(25.5, 123, $address_2, $fontsize, true);
     }
 
-    public function owner_name($name_1, $name_2)
+    public function owner_name($name_1, $name_2 = '')
     {
-        $fontsize = 11;
-        $this->pdf->SetFont($this->fontfamily, '', $fontsize - 3);
+        $fontsize = 20;
+        $this->pdf->SetFont($this->fontfamily, '', $fontsize);
 
-        $this->tate1(24, 123, $name_1, $fontsize, true);
-
+         $this->tate1(14, 123, $name_1, $fontsize * 1.3, true); // フォントサイズ20で下付きにするとズレる
+        // $this->tate1(14, 80, $name_1, $fontsize*1.3);
     }
 
     /**
@@ -166,37 +173,11 @@ class Hagaki
     }
 
     /**
-     * 文字を縦書きに配置する関数
-     * thanks! @link https://dbweb.0258.net/wiki.cgi?page=tcpdf%A4%C7%C6%FC%CB%DC%B8%EC%A4%CE%BD%C4%BD%F1%A4%AD
-     *
-     * @param $x
-     * @param $y
-     * @param $str
-     * @param $size
-     */
-    private function tate2($x, $y, $str, $size)
-    {
-        // $this->pdf->SetFont('aoyagi-kouzan-font-gyousyo', '', $size);
-
-        $fh = $this->pt2mm($size * 0.8); // 文字のサイズから算出されるオフセット
-
-        $l = mb_strlen($str, 'UTF-8');
-
-        $start = $y - $fh * $l;
-
-        for ($i = 0; $i < $l; $i++) {
-            $s1 = mb_substr($str, $i, 1, 'UTF-8');
-            //print $s1."\n";
-            $this->pdf->Text($x, $start + $fh * $i, $s1);
-        }
-    }
-
-    /**
      * デバッグ用に現在の日付を入れる。
      */
     public function addVersion() {
         $this->pdf->SetFont($this->fontfamily, '', 6);
-        $this->pdf->Text(3.75, 130.5, (new DateTime())->format('Y-m-d H:i:s'));
+        $this->pdf->Text(3.75, 138.5, (new DateTime())->format('Y-m-d H:i:s'));
     }
 
     /**
@@ -206,7 +187,7 @@ class Hagaki
      * @param $x
      * @param $base_y
      * @param $str
-     * @param $size
+     * @param int $size ここで指定されたサイズを基に縦書きの字間を計算する
      * @param bool $sitatsuki 下付き文字（下段揃え）の文字列の場合。
      *
      * @internal param $y
