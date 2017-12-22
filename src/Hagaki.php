@@ -8,6 +8,28 @@ use TCPDF_FONTS;
 
 class Hagaki
 {
+    const FONT = __DIR__ . '/../fonts/migmix-2p-regular.ttf';
+
+    const BASEPDF = __DIR__ . '/../misc/hagaki.pdf';
+
+    /**
+     * 横書きモードの際のマージン(mm)
+     */
+    const Y_MARGIN = 0.05;
+
+    /**
+     * テンプレートを使用するか否か。
+     *
+     * @var bool
+     */
+    public $use_template = false;
+
+    /**
+     * デバッグモード。
+     *
+     * @var bool
+     */
+    public $debug = false;
 
     /**
      * @var TcpdfFpdi $pdf
@@ -21,20 +43,17 @@ class Hagaki
      */
     private $names_count = 0;
 
-    const FONT = __DIR__ . '/../fonts/migmix-2p-regular.ttf';
-
-    const BASEPDF = __DIR__ . '/../misc/hagaki.pdf';
-
-    /**
-     * 横書きモードの際のマージン(mm)
-     */
-    const Y_MARGIN = 0.05;
-
     /**
      * @var TCPDF_FONTS $font
      */
     private $font;
 
+
+    /**
+     * フォントファミリー名
+     *
+     * @var string
+     */
     private $fontfamily;
 
     public function defineHagaki()
@@ -70,11 +89,13 @@ class Hagaki
     public function addPage() {
         // ページを追加
         $this->pdf->AddPage();
-        // テンプレートを読み込み
-        $this->pdf->setSourceFile(self::BASEPDF);
-        $tplIdx = $this->pdf->importPage(1);
-        // 読み込んだPDFの1ページ目をテンプレートとして使用
-        $this->pdf->useTemplate($tplIdx, null, null, null, null, true);
+        if ( (boolean)$this->use_template ) {
+            // テンプレートを読み込み
+            $this->pdf->setSourceFile(self::BASEPDF);
+            $tplIdx = $this->pdf->importPage(1);
+            // 読み込んだPDFの1ページ目をテンプレートとして使用
+            $this->pdf->useTemplate($tplIdx, null, null, null, null, true);
+        }
     }
 
     /**
