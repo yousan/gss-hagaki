@@ -138,14 +138,14 @@ class Hagaki
      */
     public function zipcode($zipcode)
     {
-        $this->pdf->SetFont($this->fontfamily, '', 19);
-        $this->pdf->Text(45, 10, $zipcode[0]);
-        $this->pdf->Text(52, 10, $zipcode[1]);
-        $this->pdf->Text(59, 10, $zipcode[2]);
-        $this->pdf->Text(67, 10, $zipcode[3]);
-        $this->pdf->Text(74, 10, $zipcode[4]);
-        $this->pdf->Text(81, 10, $zipcode[5]);
-        $this->pdf->Text(88, 10, $zipcode[6]);
+        $this->pdf->SetFont($this->fontfamily, '', 16);
+        $this->pdf->Text(46, 13, $zipcode[0]);
+        $this->pdf->Text(52, 13, $zipcode[1]);
+        $this->pdf->Text(59, 13, $zipcode[2]);
+        $this->pdf->Text(65.5, 13, $zipcode[3]);
+        $this->pdf->Text(72, 13, $zipcode[4]);
+        $this->pdf->Text(79, 13, $zipcode[5]);
+        $this->pdf->Text(85.5, 13, $zipcode[6]);
     }
 
     /**
@@ -155,14 +155,22 @@ class Hagaki
      */
     public function owner_zipcode($zipcode)
     {
-        $this->pdf->SetFont($this->fontfamily, '', 12);
-        $this->pdf->Text(3.75, 124.5, $zipcode[0]);
-        $this->pdf->Text(7.75, 124.5, $zipcode[1]);
-        $this->pdf->Text(11.75, 124.5, $zipcode[2]);
-        $this->pdf->Text(17, 124.5, $zipcode[3]);
-        $this->pdf->Text(21.25, 124.5, $zipcode[4]);
-        $this->pdf->Text(25.5, 124.5, $zipcode[5]);
-        $this->pdf->Text(29.75, 124.5, $zipcode[6]);
+        $this->pdf->SetFont($this->fontfamily, '', 10);
+        $x = 9.5;
+        $x_gap = 3.85;
+        $y = 118;
+        for ( $i=0; $i<7; $i++ ) {
+            if ( isset($zipcode[$i]) && is_numeric($zipcode[$i])) {
+                $this->pdf->Text($x + $x_gap * $i, $y, (string)intval($zipcode[$i]));
+            }
+        }
+//        $this->pdf->Text(8, $y, $zipcode[0]);
+//        $this->pdf->Text(7.75, $y, $zipcode[1]);
+//        $this->pdf->Text(11.75, $y, $zipcode[2]);
+//        $this->pdf->Text(17, $y, $zipcode[3]);
+//        $this->pdf->Text(21.25, $y, $zipcode[4]);
+//        $this->pdf->Text(25.5, $y, $zipcode[5]);
+//        $this->pdf->Text(29.75, $y, $zipcode[6]);
     }
 
     /**
@@ -176,8 +184,8 @@ class Hagaki
         $fontsize = 8;
         // $this->pdf->SetFont($this->fontfamily, '', $fontsize - 3);
 
-        $this->tate1(29.75, 120, $address_1, $fontsize, true);
-        $this->tate1(25.5, 120, $address_2, $fontsize, true);
+        $this->tate1(29.75, 115, $address_1, $fontsize, true);
+        $this->tate1(25.5, 115, $address_2, $fontsize, true);
     }
 
     /**
@@ -191,7 +199,7 @@ class Hagaki
         $fontsize = 20;
         // $this->pdf->SetFont($this->fontfamily, '', $fontsize);
 
-        $this->tate1(14, 121, $name_1, $fontsize, true);
+        $this->tate1(14, 115, $name_1, $fontsize, true);
     }
 
     /**

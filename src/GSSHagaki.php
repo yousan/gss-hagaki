@@ -172,7 +172,9 @@ class GSSHagaki
             $this->hagaki->owner_address($data['owner_address_1'], $data['owner_address_2']);
             $this->hagaki->owner_name($data['owner_name']);
 
-            $this->hagaki->addVersion();
+            if ( isset($this->options['debug']) && $this->options['debug'] ) {
+                $this->hagaki->addVersion();
+            }
         }
         return $datas;
     }
