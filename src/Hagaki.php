@@ -73,7 +73,7 @@ class Hagaki
         $this->pdf->SetFont($this->fontfamily, '', 11);
 
         // 書き込む文字列の文字色を指定
-        $this->pdf->SetTextColor(94, 61, 28);
+        $this->pdf->SetTextColor(0, 0, 0);
         // デフォルト行間
         $default_cell_height_ratio = $this->pdf->getCellHeightRatio();
 
@@ -101,13 +101,46 @@ class Hagaki
     /**
      * 名前を追記する。
      *
-     * @param $name
-     * @param $suffix
+     * @param $family_name
+     * @param array $names
      */
-    public function name($name, $suffix)
+    public function names($family_name, $names)
     {
-        $this->names_count++;
-        $this->tate1(55, 32, $name . ' ' . $suffix, 20);
+        // $this->first_name_offset = 55;
+        // $this->suffix_offset     = 0;
+        $size = 22;
+        $base_x = 55;
+        $base_y = 32;
+        $suffix_y = 0; // 敬称の位置については、名前のうちもっとも長いものに揃える
+        $this->tate1( $base_x, $base_y, $family_name, $size);
+        for ($i=0; $i<4; $i++ ) { // 名について出力する。
+            if ( ! isset($names[$i]) || empty($names[$i]['first_name']) ) {
+                continue;
+            }
+            $this->tate1(
+                $base_x - $i * $this->pt2mm($size) * 1.1,
+                $base_y + (mb_strlen($family_name) + 1 ) * $this->pt2mm($size),
+                $names[$i]['first_name'], $size
+            );
+
+            $suffix_y = max($suffix_y,
+                $base_y +
+                ( mb_strlen($family_name) + mb_strlen($names[$i]['first_name']) + 1.5 ) * $this->pt2mm( $size )
+            );
+        }
+        for ($i=0; $i<4; $i++ ) { // 様などのsuffixの一を決めるため
+            if ( ! isset($names[$i])) {
+                continue;
+            }
+            $this->tate1(
+                $base_x - $i * $this->pt2mm($size) * 1.1,
+                $suffix_y,
+                $names[$i]['suffix'], $size
+            );
+
+        }
+//        $this->tate1(55, 55, $first_name);
+//        $this->tate1(55, 32, $suffix);
     }
 
     /**
@@ -119,16 +152,16 @@ class Hagaki
      */
     public function address($address_1, $address_2)
     {
-        if ( $this->mb_tate_strlen($address_1) < 14 ) {
-            $this->tate1(85, 25, $address_1, 19);
-        } else { // 13文字以上ははみ出す可能性が高いのでフォントを小さくする
-            $this->tate1(85, 25, $address_1, 13);
-        }
-        if ( $this->mb_tate_strlen($address_2) < 14 ) {
-            $this->tate1(75, 25, $address_2, 19);
-        } else {
-            $this->tate1(75, 25, $address_2, 13);
-        }
+//        if ( $this->mb_tate_strlen($address_1) < 14 ) {
+//            $this->tate1(85, 25, $address_1, 19);
+//        } else { // 13文字以上ははみ出す可能性が高いのでフォントを小さくする
+            $this->tate1(85, 25, $address_1, 12);
+    //}
+//        if ( $this->mb_tate_strlen($address_2) < 14 ) {
+//            $this->tate1(75, 25, $address_2, 19);
+//        } else {
+            $this->tate1(75, 25, $address_2, 12);
+//        }
     }
 
     /**
@@ -139,13 +172,15 @@ class Hagaki
     public function zipcode($zipcode)
     {
         $this->pdf->SetFont($this->fontfamily, '', 16);
-        $this->pdf->Text(46, 13, $zipcode[0]);
-        $this->pdf->Text(52, 13, $zipcode[1]);
-        $this->pdf->Text(59, 13, $zipcode[2]);
-        $this->pdf->Text(65.5, 13, $zipcode[3]);
-        $this->pdf->Text(72, 13, $zipcode[4]);
-        $this->pdf->Text(79, 13, $zipcode[5]);
-        $this->pdf->Text(85.5, 13, $zipcode[6]);
+        $zipcode = str_replace('-', '', $zipcode); // ハイフンを取り除く
+        $x = 46; // x開始位置
+        $x_gap = 6.5; // xの間隔
+        $y = 13; // y開始位置
+        for ( $i=0; $i<7; $i++ ) {
+            if ( isset($zipcode[$i]) && is_numeric($zipcode[$i])) {
+                $this->pdf->Text($x + $x_gap * $i, $y, (string)intval($zipcode[$i]));
+            }
+        }
     }
 
     /**
@@ -156,6 +191,7 @@ class Hagaki
     public function owner_zipcode($zipcode)
     {
         $this->pdf->SetFont($this->fontfamily, '', 10);
+        $zipcode = str_replace('-', '', $zipcode); // ハイフンを取り除く
         $x = 9.5;
         $x_gap = 3.85;
         $y = 118;
@@ -164,13 +200,6 @@ class Hagaki
                 $this->pdf->Text($x + $x_gap * $i, $y, (string)intval($zipcode[$i]));
             }
         }
-//        $this->pdf->Text(8, $y, $zipcode[0]);
-//        $this->pdf->Text(7.75, $y, $zipcode[1]);
-//        $this->pdf->Text(11.75, $y, $zipcode[2]);
-//        $this->pdf->Text(17, $y, $zipcode[3]);
-//        $this->pdf->Text(21.25, $y, $zipcode[4]);
-//        $this->pdf->Text(25.5, $y, $zipcode[5]);
-//        $this->pdf->Text(29.75, $y, $zipcode[6]);
     }
 
     /**
@@ -196,10 +225,10 @@ class Hagaki
      */
     public function owner_name($name_1, $name_2 = '')
     {
-        $fontsize = 20;
+        $fontsize = 14;
         // $this->pdf->SetFont($this->fontfamily, '', $fontsize);
 
-        $this->tate1(14, 115, $name_1, $fontsize, true);
+        $this->tate1(14, 110, $name_1, $fontsize, true);
     }
 
     /**
@@ -311,9 +340,9 @@ class Hagaki
      * @return string
      */
     private function hyphenation($str) {
-        $str = str_replace('ー', '｜', $str);
-        $str = str_replace('−', '｜', $str);
-        $str = str_replace('-', '｜', $str);
+        $str = str_replace('ー', '丨', $str);
+        $str = str_replace('−', '丨', $str);
+        $str = str_replace('-', '丨', $str);
         return $str;
     }
 

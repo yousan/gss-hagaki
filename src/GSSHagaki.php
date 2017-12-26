@@ -67,7 +67,12 @@ class GSSHagaki
         if ( isset($options['template']) && (boolean)$options['template']) {
             $this->hagaki->use_template = true;
         }
-        if ( isset($options['debug']) && (boolean)$options['debug']) {
+        if ( isset($options['to_zenkaku']) && (boolean)$options['to_zenkaku'] ) {
+            $this->options['to_zenkaku'] = true;
+        } else {
+            $this->options['to_zenkaku'] = true;
+        }
+        if ( isset($options['debug']) && (boolean)$options['debug']) { // デバッグ
             $this->options['debug'] = true;
         } else {
             $this->options['debug'] = false;
@@ -102,15 +107,20 @@ class GSSHagaki
         // #gid=0があれば取り除く
         // e.g. https://docs.google.com/spreadsheets/d/1yfMIdt8wgBPrMY3UwiCTsX3EN_2gcLCmPAEy8dfYeLY/export#gid=0
         $url = str_replace('#gid=0', '', $url);
+        // $url = str_replace('#gid=0', '', $url);
 
         // 末尾に?format=csvを足す
         // e.g. https://docs.google.com/spreadsheets/d/1yfMIdt8wgBPrMY3UwiCTsX3EN_2gcLCmPAEy8dfYeLY/export
         if ( FALSE === strpos($url, 'format=csv') ) {
-            // @link https://stackoverflow.com/questions/5809774/manipulate-a-url-string-by-adding-get-parameters
-            $query = parse_url($url, PHP_URL_QUERY); // クエリ文字列だけを抜きだす
-            $url .= !empty($query) // 既にクエリ文字列が設定されているかどうか
-                ? '&format=csv' // 設定されていれば&で連結し
-                : '?format=csv'; // そうでなければ?で連結する
+            if (FALSE !== strpos($url, '#')) { // #があった場合にはうまくいかない
+                $url = str_replace('#', '?format=csv#', $url);
+            } else {
+                // @link https://stackoverflow.com/questions/5809774/manipulate-a-url-string-by-adding-get-parameters
+                $query = parse_url($url, PHP_URL_QUERY); // クエリ文字列だけを抜きだす
+                $url   .= ! empty($query) // 既にクエリ文字列が設定されているかどうか
+                    ? '&format=csv' // 設定されていれば&で連結し
+                    : '?format=csv'; // そうでなければ?で連結する
+            }
         }
 
         // 完成したURLの例
@@ -165,11 +175,24 @@ class GSSHagaki
             }
             $this->hagaki->addPage();
             $this->hagaki->zipcode($data['zipcode']);
-            $this->hagaki->address($data['address_1'], $data['address_2']);
-            $this->hagaki->name($data['name'], $data['suffix']);
+            $this->hagaki->address(
+                $this->to_zenkaku($data['address_1']),
+                $this->to_zenkaku($data['address_2'])
+            );
+
+
+            $names = [];
+            for($i=0; $i<4; $i++) {
+                $names[$i]['first_name'] = $data['first_name_'. ($i+1)];
+                $names[$i]['suffix'] = $data['suffix_'. ($i+1)];
+            }
+            $this->hagaki->names($data['family_name'], $names);
 
             $this->hagaki->owner_zipcode($data['owner_zipcode']);
-            $this->hagaki->owner_address($data['owner_address_1'], $data['owner_address_2']);
+            $this->hagaki->owner_address(
+                $this->to_zenkaku($data['owner_address_1']),
+                $this->to_zenkaku($data['owner_address_2'])
+            );
             $this->hagaki->owner_name($data['owner_name']);
 
             if ( isset($this->options['debug']) && $this->options['debug'] ) {
@@ -177,6 +200,16 @@ class GSSHagaki
             }
         }
         return $datas;
+    }
+
+    /**
+     * 半角数字を全角にする
+     */
+    private function to_zenkaku($str) {
+        return str_replace([0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            ['〇', '一', '二', '三', '四', '五', '六', '七', '八', '九'],
+            $str
+    );
     }
 
     /**
