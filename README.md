@@ -53,3 +53,6 @@ $url    = 'https://docs.google.com/spreadsheets/d/1yfMIdt8wgBPrMY3UwiCTsX3EN_2gc
 $hagaki = new GSSHagaki($url);
 
 ```
+
+## ライセンスについて
+gss-hagakiはGPLv3です。MigMixフォントについてはIPAフォントライセンスと鳴ります。
