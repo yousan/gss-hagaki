@@ -4,8 +4,8 @@ gss-hagakiはGoogleスプレッドシートから宛名のPDFを作成します�
 説明などは下記のページを参考にしてください。
 
 [作った経緯について](https://2017.l2tp.org/archives/801)
-[デモサイト（UPG）](https://hagaki.l2tp.org)
-[UPGとgss-hagakiの使い方について](https://2017.l2tp.org/archives/809)
+[デモサイト（UPG）](https://posgo.l2tp.org)
+[PosGoとgss-hagakiの使い方について](https://2017.l2tp.org/archives/809)
 
 
 # 使いかた
@@ -30,7 +30,7 @@ $ composer install
 ## Googleスプレッドシートでデータを作成します
 
 
-UPGとgss-hagakiの使い方について https://2017.l2tp.org/archives/809
+PosGoとgss-hagakiの使い方について https://2017.l2tp.org/archives/809
 を参考にしてください。
 
 ## 共有されたURLに対してgss-hagakiを掛けます
