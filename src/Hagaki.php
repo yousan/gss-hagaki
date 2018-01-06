@@ -10,7 +10,9 @@ class Hagaki
 {
     const FONT = __DIR__ . '/../fonts/migmix-2p-regular.ttf';
 
-    const BASEPDF = __DIR__ . '/../misc/hagaki.pdf';
+	const BASEPDF = __DIR__ . '/../misc/hagaki.pdf';
+
+	const QR_PATH = __DIR__ . '/../misc/qr.png';
 
     /**
      * 横書きモードの際のマージン(mm)
@@ -98,6 +100,21 @@ class Hagaki
         }
     }
 
+	/**
+	 * クレジット表記（PosGoへのリンクとQRコード画像）を表示する。
+	 */
+    public function credit() {
+	    $x = 40;
+	    $y = 116;
+	    $this->pdf->Image( self::QR_PATH, $x, $y, 5, 0,
+		    '', '', '', true, 300, '',
+		    false, false, 0, false, false, false,
+		    false, array() );
+	    $this->pdf->SetFont($this->fontfamily, '', 4);
+	    $this->pdf->Text($x+6, $y+1, 'この宛名はPosGoで作成されました。');
+	    $this->pdf->Text($x+6, $y+3, 'https://posgo.l2tp.org');
+    }
+
     /**
      * 名前を追記する。
      *
@@ -171,7 +188,7 @@ class Hagaki
      */
     public function zipcode($zipcode)
     {
-        $this->pdf->SetFont($this->fontfamily, '', 16);
+	    $this->pdf->SetFont($this->fontfamily, '', 16);
         $zipcode = str_replace('-', '', $zipcode); // ハイフンを取り除く
         $x = 46; // x開始位置
         $x_gap = 6.5; // xの間隔

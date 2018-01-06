@@ -41,7 +41,6 @@ class GSSHagaki
      */
     public function __construct($url, $options = [])
     {
-        // echo '<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"></head><body>';
         try {
             $url = $this->fixURL($url);
         } catch (Exception $e) {
@@ -64,14 +63,20 @@ class GSSHagaki
     private function options($options) {
         $this->options = $options;
         // はがきテンプレートを使用する
-        if ( isset($options['template']) && (boolean)$options['template']) {
+        if ( isset($options['template']) && (boolean)$options['template']) { // はがきテンプレートを表示する
             $this->hagaki->use_template = true;
         }
-        if ( isset($options['to_zenkaku']) && (boolean)$options['to_zenkaku'] ) {
+        var_dump($options['to_zenkaku']);
+        if ( isset($options['to_zenkaku']) && (boolean)$options['to_zenkaku'] ) { // 半角数字を全角にする
             $this->options['to_zenkaku'] = true;
         } else {
-            $this->options['to_zenkaku'] = true;
+            $this->options['to_zenkaku'] = false;
         }
+	    if ( isset($options['credit']) && (boolean)$options['credit']) { // クレジット表記
+		    $this->options['credit'] = true;
+	    } else {
+		    $this->options['credit'] = false;
+	    }
         if ( isset($options['debug']) && (boolean)$options['debug']) { // デバッグ
             $this->options['debug'] = true;
         } else {
@@ -198,6 +203,9 @@ class GSSHagaki
             if ( isset($this->options['debug']) && $this->options['debug'] ) {
                 $this->hagaki->addVersion();
             }
+	        if ( isset($this->options['credit']) && $this->options['credit'] ) {
+		        $this->hagaki->credit();
+	        }
         }
         return $datas;
     }
