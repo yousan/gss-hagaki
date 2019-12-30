@@ -66,7 +66,6 @@ class GSSHagaki
         if ( isset($options['template']) && (boolean)$options['template']) { // はがきテンプレートを表示する
             $this->hagaki->use_template = true;
         }
-        var_dump($options['to_zenkaku']);
         if ( isset($options['to_zenkaku']) && (boolean)$options['to_zenkaku'] ) { // 半角数字を全角にする
             $this->options['to_zenkaku'] = true;
         } else {
@@ -118,7 +117,7 @@ class GSSHagaki
         // e.g. https://docs.google.com/spreadsheets/d/1yfMIdt8wgBPrMY3UwiCTsX3EN_2gcLCmPAEy8dfYeLY/export
         if ( FALSE === strpos($url, 'format=csv') ) {
             if (FALSE !== strpos($url, '#')) { // #があった場合にはうまくいかない
-                $url = str_replace('#', '?format=csv#', $url);
+                $url = str_replace('#', '?format=csv&', $url);
             } else {
                 // @link https://stackoverflow.com/questions/5809774/manipulate-a-url-string-by-adding-get-parameters
                 $query = parse_url($url, PHP_URL_QUERY); // クエリ文字列だけを抜きだす
@@ -127,7 +126,6 @@ class GSSHagaki
                     : '?format=csv'; // そうでなければ?で連結する
             }
         }
-
         // 完成したURLの例
         // e.g. https://docs.google.com/spreadsheets/d/1yfMIdt8wgBPrMY3UwiCTsX3EN_2gcLCmPAEy8dfYeLY/export?usp=sharing&format=csv
         return $url;
