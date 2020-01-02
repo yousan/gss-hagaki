@@ -19,6 +19,13 @@ class Hagaki
      */
     const Y_MARGIN = 0.05;
 
+	/**
+	 * 差出人、郵便番号の高さ（上部からの長さ）
+	 * その年の年賀はがきによって、下部に寄付や抽選のお知らせがあるために高さが違う。
+	 * 差出人住所、氏名はこの値から3引いた値としている。
+	 */
+    const OWNER_SHITA_TAKASA = 124;
+
     /**
      * テンプレートを使用するか否か。
      *
@@ -190,8 +197,8 @@ class Hagaki
     {
 	    $this->pdf->SetFont($this->fontfamily, '', 16);
         $zipcode = str_replace('-', '', $zipcode); // ハイフンを取り除く
-        $x = 46; // x開始位置
-        $x_gap = 6.5; // xの間隔
+        $x = 44; // x開始位置
+        $x_gap = 7; // xの間隔
         $y = 13; // y開始位置
         for ( $i=0; $i<7; $i++ ) {
             if ( isset($zipcode[$i]) && is_numeric($zipcode[$i])) {
@@ -209,9 +216,9 @@ class Hagaki
     {
         $this->pdf->SetFont($this->fontfamily, '', 10);
         $zipcode = str_replace('-', '', $zipcode); // ハイフンを取り除く
-        $x = 9.5;
-        $x_gap = 3.85;
-        $y = 118;
+        $x = 6;
+        $x_gap = 4.2; // 横の文字間隔
+        $y = self::OWNER_SHITA_TAKASA;
         for ( $i=0; $i<7; $i++ ) {
             if ( isset($zipcode[$i]) && is_numeric($zipcode[$i])) {
                 $this->pdf->Text($x + $x_gap * $i, $y, (string)intval($zipcode[$i]));
@@ -230,8 +237,9 @@ class Hagaki
         $fontsize = 8;
         // $this->pdf->SetFont($this->fontfamily, '', $fontsize - 3);
 
-        $this->tate1(29.75, 115, $address_1, $fontsize, true);
-        $this->tate1(25.5, 115, $address_2, $fontsize, true);
+	    // $this->tate1(29.75, 115, $address_1, $fontsize, true);
+	    $this->tate1(29.75, self::OWNER_SHITA_TAKASA-3, $address_1, $fontsize, true);
+        $this->tate1(25.5, self::OWNER_SHITA_TAKASA-3, $address_2, $fontsize, true);
     }
 
     /**
@@ -245,7 +253,7 @@ class Hagaki
         $fontsize = 14;
         // $this->pdf->SetFont($this->fontfamily, '', $fontsize);
 
-        $this->tate1(14, 110, $name_1, $fontsize, true);
+        $this->tate1(14, self::OWNER_SHITA_TAKASA-3, $name_1, $fontsize, true);
     }
 
     /**
