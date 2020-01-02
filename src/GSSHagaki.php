@@ -62,8 +62,7 @@ class GSSHagaki
      */
     private function options($options) {
         $this->options = $options;
-        // はがきテンプレートを使用する
-        if ( isset($options['template']) && (boolean)$options['template']) { // はがきテンプレートを表示する
+	    if ( isset($options['template']) && (boolean)$options['template']) { // はがきテンプレートを表示する
             $this->hagaki->use_template = true;
         }
         if ( isset($options['to_zenkaku']) && (boolean)$options['to_zenkaku'] ) { // 半角数字を全角にする
@@ -81,6 +80,15 @@ class GSSHagaki
         } else {
             $this->options['debug'] = false;
         }
+	    if ( isset ( $options['zipcode_x'] ) ) { // 差出人 下限高さ
+		    $this->hagaki->zipcode_x = (float) $options['zipcode_x'];
+	    }
+	    if ( isset ( $options['zipcode_gap'] ) ) { // 差出人 下限高さ
+		    $this->hagaki->zipcode_gap = (float) $options['zipcode_gap'];
+	    }
+	    if ( isset ( $options['owner_shita_takasa'] ) ) { // 差出人 下限高さ
+		    $this->hagaki->owner_shita_takasa = (float) $options['owner_shita_takasa'];
+	    }
     }
 
     /**
