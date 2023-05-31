@@ -5,7 +5,8 @@
     "require": {
         "tecnickcom/tcpdf": "^6.2",
         "setasign/fpdi": "^2.0",
-        "guzzlehttp/guzzle": "^6.3"
+        "guzzlehttp/guzzle": "^6.3",
+        "google/apiclient": "^2.14"
     },
     "authors": [
         {
@@ -26,5 +27,10 @@
     },
     "scripts": {
         "test": "php tests/GSSHagakiTest.php"
+    },
+    "config": {
+        "platform": {
+            "php": "7.3"
+        }
     }
 }

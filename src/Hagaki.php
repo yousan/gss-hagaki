@@ -224,6 +224,9 @@ class Hagaki
      */
     public function owner_zipcode($zipcode)
     {
+		if (! $zipcode ) {
+			return;
+		}
         $this->pdf->SetFont($this->fontfamily, '', 10);
         $zipcode = str_replace('-', '', $zipcode); // ハイフンを取り除く
         $x = 6;
@@ -373,10 +376,15 @@ class Hagaki
      * @return string
      */
     private function hyphenation($str) {
-        $str = str_replace('ー', '丨', $str);
-        $str = str_replace('−', '丨', $str);
-        $str = str_replace('-', '丨', $str);
-        return $str;
+		if ($str ) {
+			$str = str_replace( 'ー', '丨', $str );
+			$str = str_replace( '−', '丨', $str );
+			$str = str_replace( '-', '丨', $str );
+
+			return $str;
+		} else {
+			return '';
+		}
     }
 
     /**

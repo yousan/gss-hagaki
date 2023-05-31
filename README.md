@@ -13,20 +13,20 @@ gss-hagakiはGoogleスプレッドシートから宛名のPDFを作成します�
 # 使いかた
 
 1. リポジトリをクローンします
-1. composer installします
+1. composer update します
 1. Googleスプレッドシートでデータを作成します
 1. 共有されたURLに対してgss-hagakiを掛けます
 
-## リポジトリをクローンします
+## リポジトリクローン
 
 ```
 $ git clone https://github.com/yousan/gss-hagaki
 ```
 
-## composer installします
+## composer update します
 
 ```
-$ composer install
+$ composer update
 ```
 
 ## Googleスプレッドシートでデータを作成します
@@ -57,4 +57,6 @@ $hagaki = new GSSHagaki($url);
 ```
 
 ## ライセンスについて
-gss-hagakiはGPLv3です。MigMixフォントについてはIPAフォントライセンスと鳴ります。
+gss-hagakiはGPLv3です。MigMixフォントについてはIPAフォントライセンスです。[^migmix]
+
+[^migmix]: http://mix-mplus-ipa.osdn.jp/migmix/
