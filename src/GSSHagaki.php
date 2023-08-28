@@ -82,63 +82,32 @@ class GSSHagaki {
 	}
 
 	/**
-	 * GoogleSpreadSheetのURLが正しいかチェックし、CSVダウンロード用に修正する。
+	 * URLからFileIDを取得する。
 	 *
 	 * インプット例 https://docs.google.com/spreadsheets/d/1yfMIdt8wgBPrMY3UwiCTsX3EN_2gcLCmPAEy8dfYeLY/edit?usp=sharing
 	 *
 	 * @param $url
 	 *
-	 * @return string
-	 * @throws Exception
+	 * @return mixed|string
 	 */
-	private function fixURL( $url ) {
-		// 1. docs.google.comで始まっている
-		// 1. URLパスの最後がexportになっている
+	private function getFileIdByURL( $url ) {
+		$urls  = parse_url( $url );
+		$paths = explode( '/', $urls['path'] );
 
-		// またフォーマットについては正しくない場合に修正を行う。
-		// 1. format=csvになっている
-
-		// 先頭が https://docs.google.com/ で始まっているか確認する ココ重要！
-		if ( 0 !== strpos( $url, 'https://docs.google.com/spreadsheets' ) ) {
-			throw new Exception( 'GoogleスプレッドシートのURLではないようです。' );
-		}
-
-		// 末尾の/editを/exportに変える（厳密にはURL中の…、だけれど、ハッシュで/editが出る可能性は低いと見ている
-		// e.g. https://docs.google.com/spreadsheets/d/1yfMIdt8wgBPrMY3UwiCTsX3EN_2gcLCmPAEy8dfYeLY/edit#gid=0
-		$url = str_replace( '/edit', '/export', $url );
-
-		// #gid=0があれば取り除く
-		// e.g. https://docs.google.com/spreadsheets/d/1yfMIdt8wgBPrMY3UwiCTsX3EN_2gcLCmPAEy8dfYeLY/export#gid=0
-		$url = str_replace( '#gid=0', '', $url );
-		// $url = str_replace('#gid=0', '', $url);
-
-		// 末尾に?format=csvを足す
-		// e.g. https://docs.google.com/spreadsheets/d/1yfMIdt8wgBPrMY3UwiCTsX3EN_2gcLCmPAEy8dfYeLY/export
-		if ( false === strpos( $url, 'format=csv' ) ) {
-			if ( false !== strpos( $url, '#' ) ) { // #があった場合にはうまくいかない
-				$url = str_replace( '#', '?format=csv&', $url );
-			} else {
-				// @link https://stackoverflow.com/questions/5809774/manipulate-a-url-string-by-adding-get-parameters
-				$query = parse_url( $url, PHP_URL_QUERY ); // クエリ文字列だけを抜きだす
-				$url   .= ! empty( $query ) // 既にクエリ文字列が設定されているかどうか
-					? '&format=csv' // 設定されていれば&で連結し
-					: '?format=csv'; // そうでなければ?で連結する
-			}
-		}
-		// 完成したURLの例
-		// e.g. https://docs.google.com/spreadsheets/d/1yfMIdt8wgBPrMY3UwiCTsX3EN_2gcLCmPAEy8dfYeLY/export?usp=sharing&format=csv
-		return $url;
+		return $paths[3];
 	}
 
 	/**
 	 * 情報を読み出して配列で返す。
 	 *
 	 * @return array
+	 * @throws Exception
 	 */
-	private function getData() {
+	private function getData( string $url ) {
 		// スプレッドシートIDとシート名の設定
-		$spreadsheetId = '1yfMIdt8wgBPrMY3UwiCTsX3EN_2gcLCmPAEy8dfYeLY';
-		$sheetName     = 'サンプル（編集不可）';
+		// $spreadsheetId = '1yfMIdt8wgBPrMY3UwiCTsX3EN_2gcLCmPAEy8dfYeLY';
+		// $sheetName     = 'サンプル（編集不可）';
+		$spreadsheetId = $this->getFileIdByURL( $url );
 
 		// 認証とAPIクライアントの設定
 		$client = new \Google\Client( [ 'credentials' => __DIR__ . '/../secret.json' ] );
@@ -148,12 +117,11 @@ class GSSHagaki {
 		// スプレッドシートデータの取得
 		$spreadsheet = ( new Sheets( $client ) )->spreadsheets->get( $spreadsheetId );
 		$sheetData   = $spreadsheet->getSheets();
-		// var_dump($sheetData); exit;
+
 		/** @var Sheet $sheet */
 		$sheet     = array_pop( $sheetData );
 		$sheetName = $sheet->getProperties()->title;
-		$data      = ( new \Google\Service\Sheets( $client ) )->spreadsheets_values->get( $spreadsheetId, $sheetName );
-
+		$data = ( new \Google\Service\Sheets( $client ) )->spreadsheets_values->get( $spreadsheetId, $sheetName );
 		return $data->values;
 	}
 
@@ -161,9 +129,19 @@ class GSSHagaki {
 	 * @param $url
 	 *
 	 * @return array
+	 * @throws Exception
 	 */
 	private function readData( $url ) {
-		$rows   = $this->getData();
+		try {
+			$rows = $this->getData( $url );
+		}catch ( Exception $e ) {
+			// エラー処理を入れていないので、下記のメッセージが直接表示されます。
+			echo 'スプレッドシートデータの取得に失敗しました。共有設定がされていない可能性があります。<br>'.
+			     '該当のスプレッドシートに<br>'.
+			     '<pre> posgo-user@yousan.iam.gserviceaccount.com </pre><br>'.
+			     'を共有してください。';
+			exit;
+		}
 		$header = []; // カラム名が記載された見出し行
 		$datas  = [];
 
@@ -182,7 +160,7 @@ class GSSHagaki {
 			// array_combineは２つのサイズが一緒じゃないと動作しないため、同じ長さにする @see https://stackoverflow.com/questions/4769213/combine-2-arrays-of-different-lengths
 			// $data = array_combine(array_intersect_key($header, $row), array_intersect_key($row, $header));
 			$count = max( count( $header ), count( $row ) );
-			$data = array_combine( $header, array_pad( $row, $count, null ) );
+			$data  = array_combine( $header, array_pad( $row, $count, null ) );
 			// var_dump($data);
 			$datas[] = $data;
 		}
